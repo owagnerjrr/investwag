@@ -1,1 +1,16 @@
-{"name":"wj-quant","version":"0.1.0","private":true,"type":"module","scripts":{"dev":"vite --host","build":"vite build"},"dependencies":{"react":"^19.0.0","react-dom":"^19.0.0","vite":"^6.0.0"}}
+{
+  "name": "wj-quant",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "test": "node --test ledger.test.js"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "vite": "^6.0.0"
+  }
+}
