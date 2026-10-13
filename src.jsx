@@ -1,6 +1,6 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { demoApi } from "./api-client.js";
+import { demoApi, onConnectionStatus } from "./api-client.js";
 import "./style.css";
 const fmt = (value) =>
   (Number(value) / 100).toLocaleString("pt-BR", {
@@ -19,6 +19,8 @@ function App() {
   const pending = useRef(null),
     running = useRef(false);
   const [uncertain, setUncertain] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState("");
+  useEffect(() => onConnectionStatus(setConnectionStatus), []);
   async function load() {
     setPortfolio(await demoApi.portfolio());
   }
@@ -99,6 +101,11 @@ function App() {
   const withdrawn = portfolio ? BigInt(portfolio.withdrawnCents) : 0n;
   return (
     <main aria-busy={busy}>
+      {connectionStatus && (
+        <p className="feedback" role="status">
+          {connectionStatus}
+        </p>
+      )}
       <header>
         <a className="brand" href="/" aria-label="WJ Quant início">
           <span className="mark" aria-hidden="true">

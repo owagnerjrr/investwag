@@ -160,3 +160,38 @@ for (const lostResponse of ["movement", "portfolio"])
     await expect(page.locator(".hero h2")).toContainText("10,00");
     await expect(page.locator(".history li")).toHaveCount(1);
   });
+
+test("aguarda API gratuita despertar antes de enviar o cadastro uma única vez", async ({
+  page,
+}, info) => {
+  let probes = 0,
+    registrations = 0;
+  await page.route("**/health", async (route) => {
+    if (++probes === 1)
+      return route.fulfill({
+        status: 503,
+        contentType: "text/html",
+        body: "Starting service",
+      });
+    return route.continue();
+  });
+  await page.route("**/auth/register", async (route) => {
+    registrations++;
+    return route.continue();
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Criar conta demonstrativa" }).click();
+  await page
+    .getByLabel("E-mail", { exact: true })
+    .fill(`${prefix}-${info.project.name}-wake@example.test`);
+  await page.getByLabel("Senha", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Cadastrar e entrar" }).click();
+  await expect(
+    page.getByText(/API gratuita pode estar despertando/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Minha carteira" }),
+  ).toBeVisible();
+  expect(registrations).toBe(1);
+  expect(probes).toBeGreaterThan(1);
+});

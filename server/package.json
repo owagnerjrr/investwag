@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "node --env-file=.env server.js",
     "start": "node server.js",
-    "test": "node --test tests/money.test.js tests/health.test.js",
+    "start:render": "prisma migrate deploy && node server.js",
+    "test": "node --test tests/money.test.js tests/health.test.js tests/db-connection.test.js",
     "test:integration": "node --test tests/integration.test.js tests/migration-upgrade.test.js",
     "build": "prisma validate && prisma generate && node --check app.js && node --check server.js",
     "db:migrate": "prisma migrate deploy",

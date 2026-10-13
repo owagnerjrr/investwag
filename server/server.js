@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { createApp } from "./app.js";
+import { connectWithRetry } from "./db-connection.js";
 const db = new PrismaClient();
-await db.$connect();
+await connectWithRetry(db);
 const server = createApp(db).listen(
   Number(process.env.PORT || 4000),
   "0.0.0.0",
