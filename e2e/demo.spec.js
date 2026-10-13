@@ -127,7 +127,7 @@ test("cadastro, carteira, validações, pausa, recarga e isolamento", async ({
   expect(errors).toEqual([]);
 });
 
-for (const lostResponse of ["movement", "portfolio"])
+for (const lostResponse of ["movement", "portfolio", "html"])
   test(`resposta perdida (${lostResponse}) pode ser repetida sem duplicar o aporte`, async ({
     page,
   }, info) => {
@@ -139,12 +139,20 @@ for (const lostResponse of ["movement", "portfolio"])
     await login(page, email);
     let first = true;
     await page.route(
-      lostResponse === "movement" ? "**/portfolio/movements" : "**/portfolio",
+      lostResponse === "portfolio" ? "**/portfolio" : "**/portfolio/movements",
       async (route) => {
         if (!first) return route.continue();
         first = false;
         const response = await route.fetch();
-        expect(response.status()).toBe(lostResponse === "movement" ? 201 : 200);
+        expect(response.status()).toBe(
+          lostResponse === "portfolio" ? 200 : 201,
+        );
+        if (lostResponse === "html")
+          return route.fulfill({
+            status: 200,
+            contentType: "text/html",
+            body: "Starting service",
+          });
         await route.abort("failed");
       },
     );

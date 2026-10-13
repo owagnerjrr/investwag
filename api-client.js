@@ -74,9 +74,16 @@ async function request(path, options = {}) {
     publish("");
   }
   if (response.status === 204) return null;
-  const data = await response
-    .json()
-    .catch(() => ({ error: "Resposta inválida do servidor" }));
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    if (response.status === 401) token = null;
+    throw new ApiError(
+      "A API retornou uma resposta temporária. Aguarde e confirme a operação pendente com segurança.",
+      response.ok ? 0 : response.status,
+    );
+  }
   if (!response.ok) {
     if (response.status === 401) token = null;
     throw new ApiError(data.error || "Falha na solicitação", response.status);
