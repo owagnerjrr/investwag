@@ -4,6 +4,38 @@ const base = (import.meta.env.VITE_API_URL || "http://localhost:4000").replace(
   "",
 );
 let token = null;
+const listeners = new Set();
+export function onConnectionStatus(listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+const publish = (message) => listeners.forEach((listener) => listener(message));
+async function waitForApi() {
+  const deadline = Date.now() + 120000;
+  let attempt = 0;
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch(base + "/health", {
+        signal: AbortSignal.timeout(10000),
+        cache: "no-store",
+      });
+      const data = await response.json();
+      if (response.ok && data.mode === "simulation" && data.status === "ok")
+        return;
+    } catch {
+      /* A suspended Render service may return HTML or no CORS headers. */
+    }
+    publish(
+      "A API gratuita pode estar despertando. Aguarde até dois minutos; nenhuma movimentação é enviada durante essa espera.",
+    );
+    await new Promise((resolve) =>
+      setTimeout(resolve, Math.min(1000 * ++attempt, 5000)),
+    );
+  }
+  throw new ApiError(
+    "A API está indisponível ou ainda despertando. Aguarde e tente novamente; sua operação pendente pode ser confirmada com segurança.",
+  );
+}
 export class ApiError extends Error {
   constructor(message, status = 0) {
     super(message);
@@ -12,7 +44,17 @@ export class ApiError extends Error {
 }
 async function request(path, options = {}) {
   let response;
+  let slowTimer;
   try {
+    // Probe only GET /health. Never replay a POST implicitly.
+    await waitForApi();
+    slowTimer = setTimeout(
+      () =>
+        publish(
+          "Conectando à API demonstrativa… Aguarde a confirmação antes de repetir uma operação.",
+        ),
+      5000,
+    );
     response = await fetch(base + path, {
       ...options,
       signal: AbortSignal.timeout(15000),
@@ -22,10 +64,14 @@ async function request(path, options = {}) {
         ...options.headers,
       },
     });
-  } catch {
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
     throw new ApiError(
       "Não foi possível confirmar a resposta da API. Verifique a conexão e tente novamente.",
     );
+  } finally {
+    clearTimeout(slowTimer);
+    publish("");
   }
   if (response.status === 204) return null;
   const data = await response
