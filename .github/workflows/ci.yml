@@ -1,47 +1,56 @@
 name: WJ Quant CI
 on:
   push:
-    branches: [main]
   pull_request:
+permissions:
+  contents: read
 jobs:
-  frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: npm install --no-audit --no-fund
-      - run: npm test
-      - run: npm run build
-  backend:
+  demo:
     runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_DB: wjquant
+          POSTGRES_DB: wjquant_test
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports: ['5432:5432']
+        ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wjquant?schema=public
-    defaults:
-      run:
-        working-directory: server
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/wjquant_test?schema=public
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          node-version: '22'
-      - run: npm install --no-audit --no-fund
-      - run: npx prisma validate
-      - run: npx prisma generate
-      - run: npx prisma db push --skip-generate
-      - run: node --check server.js
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
+        working-directory: server
       - run: npm test
+      - run: npm run build
+      - run: npm run build
+        working-directory: server
+      - run: npm run db:migrate
+        working-directory: server
+      - run: npm run db:status
+        working-directory: server
+      - run: npm test
+        working-directory: server
+      - run: npm run test:integration
+        working-directory: server
+      - run: npm audit --audit-level=moderate
+      - run: npm audit --audit-level=moderate
+        working-directory: server
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      # Validation only. No deployment, paid resource or production release.

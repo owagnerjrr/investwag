@@ -1,11 +1,18 @@
-import express from "express";import helmet from "helmet";import cors from "cors";import rateLimit from "express-rate-limit";import {PrismaClient} from "@prisma/client";import {z} from "zod";import bcrypt from "bcryptjs";import crypto from "node:crypto";
-const app=express(),db=new PrismaClient();app.disable("x-powered-by");app.use(helmet());app.use(cors({origin:process.env.CORS_ORIGIN||"http://localhost:5173"}));app.use(express.json({limit:"16kb"}));app.use(rateLimit({windowMs:60000,limit:100}));
-const sessions=new Map();const parseMoney=(s)=>{if(typeof s!=="string"||!/^(?:0|[1-9]\d*)(?:[.,]\d{1,2})?$/.test(s))throw Error("Valor inválido");const [whole,part=""]=s.replace(",",".").split(".");const n=BigInt(whole)*100n+BigInt(part.padEnd(2,"0"));if(n<=0n||n>100000000000n)throw Error("Valor fora do limite");return n};
-const requireAuth=(req,res,next)=>{const token=req.get("Authorization")?.replace(/^Bearer /,"");const record=token&&sessions.get(crypto.createHash("sha256").update(token).digest("hex"));if(!record||record.expires<Date.now())return res.status(401).json({error:"Não autenticado"});req.userId=record.userId;next()};
-app.get("/health",(_req,res)=>res.json({status:"ok",mode:"simulation"}));
-app.post("/auth/register",async(req,res)=>{const parsed=z.object({email:z.string().email(),password:z.string().min(12).max(128)}).safeParse(req.body);if(!parsed.success)return res.status(400).json({error:"Dados inválidos"});try{const user=await db.user.create({data:{email:parsed.data.email.toLowerCase(),passwordHash:await bcrypt.hash(parsed.data.password,12),portfolio:{create:{}}}});res.status(201).json({id:user.id})}catch{res.status(409).json({error:"Cadastro não disponível"})}});
-app.post("/auth/login",async(req,res)=>{const parsed=z.object({email:z.string().email(),password:z.string()}).safeParse(req.body);if(!parsed.success)return res.status(400).json({error:"Credenciais inválidas"});const user=await db.user.findUnique({where:{email:parsed.data.email.toLowerCase()}});if(!user||!await bcrypt.compare(parsed.data.password,user.passwordHash))return res.status(401).json({error:"Credenciais inválidas"});const token=crypto.randomBytes(32).toString("hex");sessions.set(crypto.createHash("sha256").update(token).digest("hex"),{userId:user.id,expires:Date.now()+3600000});res.json({token,expiresIn:3600})});
-app.get("/portfolio",requireAuth,async(req,res)=>{const p=await db.portfolio.findUnique({where:{userId:req.userId},include:{movements:{orderBy:{createdAt:"desc"},take:30}}});if(!p)return res.status(404).json({error:"Carteira não encontrada"});res.json({cashCents:String(p.cashCents),contributedCents:String(p.contributedCents),withdrawnCents:String(p.withdrawnCents),paused:p.paused,movements:p.movements.map(m=>({id:m.id,type:m.type,amountCents:String(m.amountCents),createdAt:m.createdAt}))})});
-app.post("/portfolio/movements",requireAuth,async(req,res)=>{const parsed=z.object({type:z.enum(["DEPOSIT","WITHDRAW"]),amount:z.string()}).safeParse(req.body);if(!parsed.success)return res.status(400).json({error:"Dados inválidos"});let amount;try{amount=parseMoney(parsed.data.amount)}catch{return res.status(400).json({error:"Valor inválido"})}if(parsed.data.type==="DEPOSIT"&&amount<1000n)return res.status(400).json({error:"Aporte mínimo R$ 10"});try{const result=await db.$transaction(async tx=>{const p=await tx.portfolio.findUniqueOrThrow({where:{userId:req.userId}});if(parsed.data.type==="WITHDRAW"){const updated=await tx.portfolio.updateMany({where:{id:p.id,cashCents:{gte:amount}},data:{cashCents:{decrement:amount},withdrawnCents:{increment:amount}}});if(updated.count!==1)throw Error("SALDO")}else await tx.portfolio.update({where:{id:p.id},data:{cashCents:{increment:amount},contributedCents:{increment:amount}}}});return tx.cashMovement.create({data:{portfolioId:p.id,type:parsed.data.type,amountCents:amount}})});res.status(201).json({id:result.id})}catch(e){res.status(e.message==="SALDO"?409:500).json({error:e.message==="SALDO"?"Saldo insuficiente":"Falha na movimentação"})}});
-app.post("/portfolio/pause",requireAuth,async(req,res)=>{const parsed=z.object({paused:z.boolean()}).safeParse(req.body);if(!parsed.success)return res.status(400).json({error:"Dados inválidos"});const p=await db.portfolio.update({where:{userId:req.userId},data:{paused:parsed.data.paused}});res.json({paused:p.paused})});
-const port=Number(process.env.PORT||4000);app.listen(port,()=>console.log("WJ Quant simulation API listening on "+port));
+import { PrismaClient } from "@prisma/client";
+import { createApp } from "./app.js";
+const db = new PrismaClient();
+await db.$connect();
+const server = createApp(db).listen(
+  Number(process.env.PORT || 4000),
+  "0.0.0.0",
+  () => console.log("WJ Quant simulation API listening"),
+);
+function shutdown() {
+  server.close(async () => {
+    await db.$disconnect();
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10000).unref();
+}
+process.once("SIGINT", shutdown);
+process.once("SIGTERM", shutdown);

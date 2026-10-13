@@ -5,7 +5,14 @@
   "scripts": {
     "dev": "node --env-file=.env server.js",
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test tests/money.test.js tests/health.test.js",
+    "test:integration": "node --test tests/integration.test.js tests/migration-upgrade.test.js",
+    "build": "prisma validate && prisma generate && node --check app.js && node --check server.js",
+    "db:migrate": "prisma migrate deploy",
+    "db:status": "prisma migrate status"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.0"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
