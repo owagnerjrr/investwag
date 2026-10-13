@@ -1,80 +1,67 @@
-# WJ Quant
+# WJ Quant — demonstração
 
-WJ Quant é um projeto de plataforma automatizada de investimentos com foco em simplicidade para o usuário, automação operacional, gestão de risco e transparência de ganhos e perdas.
+Carteira demonstrativa React/Vite com API Express, PostgreSQL e Prisma. Cadastro, login, saldo por usuário, aportes/retiradas fictícios, histórico e controle de pausa funcionam em desktop e celular.
 
-> Estado atual: **Bloco 1 — Fundação do projeto**
->
-> **Nenhuma operação financeira real está habilitada.** O projeto começa em modo demonstrativo/simulado.
+**Somente simulação. Sem dinheiro real, corretoras, ordens de investimento ou promessa de lucro.** O motor de investimentos não foi iniciado. Reativar o sistema apenas salva a preferência na conta.
 
-## Visão do produto
+## Executar localmente
 
-A filosofia central do WJ Quant é:
+Requisitos: Node.js 22 LTS, npm e PostgreSQL 16+. Os lockfiles estão versionados.
 
-**O usuário administra o capital. O WJ Quant administra as operações.**
+Frontend, na raiz:
 
-No produto final, o usuário deverá basicamente:
-
-- adicionar capital;
-- retirar capital;
-- acompanhar patrimônio, ganhos e perdas;
-- pausar ou reativar o sistema quando necessário.
-
-O sistema será preparado para, futuramente, analisar oportunidades de mercado, selecionar estratégias, dimensionar posições, executar operações automaticamente, controlar risco, registrar decisões e funcionar em nuvem sem depender do computador do usuário.
-
-## Regras centrais
-
-- capital lógico mínimo previsto: **R$ 10,00**;
-- nenhum valor mínimo garante que haverá operação;
-- o sistema deverá permanecer sem operar quando não houver oportunidade adequada;
-- ganhos e perdas devem ser exibidos com transparência;
-- dinheiro real continuará custodiado pela instituição/corretora integrada, não pelo WJ Quant;
-- integração com corretora e ordens reais só serão consideradas após simulação, backtesting, paper trading e validação de risco;
-- saques nunca serão automatizados pelo robô sem ação explícita do usuário.
-
-## Arquitetura prevista
-
-- **WJ Quant Dashboard** — interface simples para desktop e celular;
-- **WJ Quant Scanner** — descoberta e comparação de oportunidades;
-- **WJ Quant Engine** — estratégias e decisões quantitativas;
-- **WJ Quant Guard** — camada independente de risco;
-- **WJ Quant Broker** — abstração de execução, começando por PaperBroker;
-- **WJ Quant Market Data** — abstração para dados de mercado;
-- **WJ Quant Backtest** — testes históricos;
-- **WJ Quant Audit** — trilha de auditoria de eventos e decisões.
-
-Fluxo obrigatório futuro:
-
-```text
-Scanner -> Engine -> Guard -> Broker
+```sh
+npm ci
+cp .env.example .env
+npm run dev
 ```
 
-Nenhum módulo deverá ignorar o Guard para enviar ordens.
+Backend, em outro terminal:
 
-## Roadmap inicial
+```sh
+cd server
+npm ci
+cp .env.example .env
+# Configure DATABASE_URL e CORS_ORIGIN no arquivo, sem versionar credenciais.
+npm run build
+npm run db:migrate
+npm run dev
+```
 
-1. Fundação, documentação e estrutura do projeto
-2. Dashboard responsivo
-3. Carteira virtual e movimentações simuladas
-4. Dados de mercado
-5. Opportunity Scanner
-6. PaperBroker
-7. Quant Engine
-8. WJ Quant Guard
-9. Backtesting
-10. Relatórios e explicações das operações
-11. Execução em nuvem 24h
-12. PWA e notificações
-13. Testes de resiliência e segurança
-14. Paper trading prolongado
-15. Integração real com corretora, somente após validação
+Crie previamente um banco exclusivo de demonstração. A API escuta na porta 4000 e o Vite na 5173. Abra o frontend, crie uma conta com senha de 12 a 72 bytes e faça um aporte fictício de pelo menos R$ 10. A carteira começa zerada e pausada.
 
-## Segurança financeira
+Para acessar pelo celular na mesma rede, use o IP do computador no VITE_API_URL, autorize a origem exata do frontend em CORS_ORIGIN e permita as portas na rede local. Não use localhost como endereço da API no celular. Em hospedagem, frontend e backend devem usar HTTPS.
 
-O WJ Quant não promete rentabilidade e não deve operar apenas para permanecer ativo. Uma decisão válida pode ser **não operar**.
+## Testar
 
-Consulte também:
+```sh
+npm test
+npm run build
+cd server
+npm run build
+npm test
+# DATABASE_URL deve apontar para um banco dedicado cujo nome termina em _test.
+npm run db:migrate
+npm run test:integration
+cd ..
+npx playwright install chromium
+npm run test:e2e
+```
 
-- `docs/ARCHITECTURE.md`
-- `docs/FINANCIAL-SAFETY.md`
-- `docs/ROADMAP.md`
-- `docs/SECURITY.md`
+Use um banco _test, nunca dados de usuários, para integração/E2E. Configure DATABASE_URL no ambiente do terminal antes dos testes. Os testes criam contas com prefixos únicos e removem apenas suas próprias contas. O teste de upgrade cria e remove um schema temporário nesse banco.
+
+A suíte E2E inicia a API e o preview do build, nas portas 4000/5173. Execute o build antes. Desktop e Pixel 7 são testados em Chromium; o teste também verifica largura de 320 px. Isso não substitui teste em aparelho físico ou Safari.
+
+## Publicação
+
+Veja [DEPLOYMENT.md](docs/DEPLOYMENT.md) para Vercel, backend, variáveis, migrations e validação após publicação. A CI apenas valida; não publica serviços. O deploy em produção precisa de autorização.
+
+## Documentação
+
+- [Resultado dos testes](docs/TEST-STATUS.md)
+- [Estado implementado](docs/IMPLEMENTATION-STATUS.md)
+- [Integração atual](docs/INTEGRATION-NEXT.md)
+- [Segurança](docs/SECURITY.md)
+- [Segurança financeira](docs/FINANCIAL-SAFETY.md)
+- [Arquitetura e módulos futuros](docs/ARCHITECTURE.md)
+- [Roadmap futuro — não iniciado](docs/ROADMAP.md)
