@@ -498,6 +498,8 @@ footer strong {
   margin-top: 32px;
 }
 .quant-area .feedback { position: static; }
+.quant-area label { display: block; margin-top: 12px; }
+.quant-area .check-label { display: flex; }
 .quant-area section {
   margin: 20px 0;
 }
