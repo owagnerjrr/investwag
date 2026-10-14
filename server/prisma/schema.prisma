@@ -72,6 +72,8 @@ model QuantBar {
   date DateTime @db.Date
   priceMicros BigInt
   source String
+  sourceDate DateTime? @db.Date
+  provenance Json?
   fetchedAt DateTime @default(now())
   @@unique([assetId, date])
 }
@@ -90,8 +92,10 @@ model QuantStrategy {
   name String
   version String @default("sma-cross-v1")
   config Json
+  idempotencyKey String
   createdAt DateTime @default(now())
   @@index([userId])
+  @@unique([userId, idempotencyKey])
 }
 model QuantRun {
   id String @id @default(cuid())

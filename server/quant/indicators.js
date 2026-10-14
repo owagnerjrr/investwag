@@ -32,8 +32,8 @@ export function analyze(bars, now = new Date()) {
   const values = bars.map(b => Number(b.priceMicros) / 1e6);
   const short = sma(values, 5), long = sma(values, 20);
   const last = bars.at(-1);
-  const stale = !last || +now - +new Date(last.date) > 5 * 86400000;
-  return { version: VERSION, asOf: last?.date ?? null, count: bars.length,
+  const stale = !last || +now - +new Date(last.sourceDate || last.date) > 5 * 86400000;
+  return { version: VERSION, asOf: last?.date ?? null, sourceDate:last?.sourceDate ?? last?.date ?? null, count: bars.length,
     source: last?.source ?? null, price: values.at(-1) ?? null,
     sma5: short, sma20: long, ema20: ema(values, 20), rsi14: rsi(values),
     volatility20: volatility(values), volume: null, liquidity: null, stale,

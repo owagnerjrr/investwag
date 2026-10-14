@@ -6,6 +6,7 @@ RUN npm ci --no-audit --no-fund
 COPY prisma ./prisma
 RUN npx prisma generate
 COPY app.js server.js db-connection.js ./
+COPY quant ./quant
 USER node
 ENV NODE_ENV=production PORT=4000
 EXPOSE 4000

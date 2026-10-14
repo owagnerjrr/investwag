@@ -11,7 +11,7 @@ export async function fetchRates(symbol, from, to, fetcher = fetch) {
   let size = 0; const chunks = [];
   try { while (true) {
     const { done, value } = await reader.read(); if (done) break;
-    size += value.length; if (size > 128000) throw Error('Resposta de mercado excede limite');
+    size += value.length; if (size > 2000000) throw Error('Resposta de mercado excede limite');
     chunks.push(Buffer.from(value));
   }} finally { await reader.cancel(); }
   const rows = JSON.parse(Buffer.concat(chunks).toString('utf8'));
@@ -21,8 +21,12 @@ export async function fetchRates(symbol, from, to, fetcher = fetch) {
     if (row.base !== base || row.quote !== 'BRL' || !/^\d{4}-\d{2}-\d{2}$/.test(row.date) || row.date < from || row.date > to || typeof row.rate !== 'number' || !Number.isFinite(row.rate) || row.rate <= 0 || row.rate > 1e6) throw Error('Dados de mercado inválidos');
     const priceMicros = BigInt(Math.round(row.rate * 1e6));
     if (!priceMicros) throw Error('Preço abaixo da precisão suportada');
+    const providers = Array.isArray(row.providers) ? row.providers.map(p => typeof p === 'string' ? p : p?.key).filter(p => typeof p === 'string') : [];
+    const observedDates = Array.isArray(row.providers) ? row.providers.map(p => p?.date).filter(d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= row.date).sort() : [];
     result.set(row.date, { date: row.date, priceMicros,
-      source: 'Frankfurter v2 blended: ' + (Array.isArray(row.providers) ? row.providers.filter(p => typeof p === 'string').join(',').slice(0, 200) : 'fontes oficiais; veja frankfurter.dev') });
+      source: 'Frankfurter v2 blended: ' + (providers.join(',').slice(0, 1000) || 'fontes oficiais; veja frankfurter.dev'),
+      sourceDate:observedDates.at(-1) || row.date,
+      provenance: Array.isArray(row.providers) ? row.providers.slice(0,150) : [] });
   }
   if (!result.size) throw Error('Nenhum dado disponível no período');
   return [...result.values()].sort((a, b) => a.date.localeCompare(b.date));
