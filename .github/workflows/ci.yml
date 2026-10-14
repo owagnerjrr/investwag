@@ -21,6 +21,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
+      VITE_QUANT_ENABLED: "1"
+      VITE_API_URL: http://127.0.0.1:4000
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/wjquant_test?schema=public
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
