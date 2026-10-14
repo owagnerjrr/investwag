@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import { once } from "node:events";
+import { spawn } from 'node:child_process';
 import { PrismaClient } from "@prisma/client";
 import { createApp } from "../app.js";
 if (
@@ -178,10 +179,17 @@ test("Quant PostgreSQL: isolamento, checkpoints, concorrência e compatibilidade
           409,
         );
         await new Promise((resolve) => server.close(resolve));
-        await start();
-        const resumed = await call(`/quant/runs/${backtest.id}/step`, {
-          limit: 50,
-        });
+        const fixture=spawn(process.execPath,['tests/restart-fixture.js'],{cwd:new URL('../',import.meta.url),env:{...process.env,QUANT_ENABLED:'1'},stdio:['ignore','pipe','pipe']});
+        let resumed;
+        try {
+          base=await new Promise((resolve,reject)=>{
+            const timer=setTimeout(()=>reject(Error('Restart timeout')),15000);
+            fixture.once('error',reject);
+            fixture.stdout.once('data',data=>{clearTimeout(timer);resolve(String(data).trim());});
+            fixture.once('exit',code=>{clearTimeout(timer);reject(Error('Restart exited '+code));});
+          });
+          resumed=await call(`/quant/runs/${backtest.id}/step`, {limit:50});
+        } finally {fixture.kill();await once(fixture,'exit');await start();}
         assert.equal(resumed.data.processed, 20);
         assert.equal(resumed.data.status, "COMPLETED");
         assert.equal(
