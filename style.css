@@ -493,3 +493,99 @@ footer strong {
     flex-direction: column;
   }
 }
+/* Quant laboratory stays separate from the existing wallet. */
+.quant-area {
+  margin-top: 32px;
+}
+.quant-area section {
+  margin: 20px 0;
+}
+.quant-area h3 {
+  margin-top: 0;
+}
+.quant-area select {
+  width: 100%;
+  min-height: 44px;
+  margin: 8px 0 16px;
+  padding: 10px;
+  border: 1px solid #38524b;
+  border-radius: 8px;
+  background: #10221e;
+  color: #edf6f2;
+}
+.quant-area small {
+  display: block;
+  color: #a7bbb3;
+  margin-top: 6px;
+}
+.quant-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+}
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+.check-label input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+}
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.table-scroll table {
+  border-collapse: collapse;
+  min-width: 700px;
+  width: 100%;
+  text-align: left;
+}
+.table-scroll th,
+.table-scroll td {
+  padding: 12px;
+  border-bottom: 1px solid #38524b;
+}
+.quant-run {
+  padding: 18px 0;
+  border-bottom: 1px solid #38524b;
+}
+.quant-run h4 {
+  margin: 0;
+}
+.quant-area figure {
+  margin: 20px 0;
+  color: #9ce4bf;
+}
+.quant-area svg {
+  width: 100%;
+  height: auto;
+}
+.quant-events {
+  list-style: none;
+  padding: 0;
+}
+.quant-events li {
+  padding: 12px 0;
+  border-bottom: 1px solid #38524b;
+}
+.hash {
+  display: block;
+  overflow-wrap: anywhere;
+  margin: 10px 0;
+}
+@media (max-width: 600px) {
+  .quant-area .section-heading {
+    display: block;
+  }
+  .quant-area .section-heading button {
+    margin-top: 12px;
+  }
+  .quant-fields {
+    grid-template-columns: 1fr;
+  }
+}
