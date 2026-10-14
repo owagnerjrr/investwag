@@ -4,7 +4,7 @@ import { signal, fill, sizePosition } from '../quant/strategy.js';
 const bars = prices => prices.map(priceMicros => ({ priceMicros }));
 test('cruzamento tem motivo verificável e não usa futuro', () => {
   assert.equal(signal(bars([4,3,2,5]), { fast:2, slow:3 }).side, 'BUY');
-  assert.equal(signal(bars([1,2,3,1]), { fast:2, slow:3 }).side, 'SELL');
+  assert.equal(signal(bars([1,3,4,1]), { fast:2, slow:3 }).side, 'SELL');
   assert.equal(signal(bars([1,2]), { fast:2, slow:3 }).side, 'WAIT');
 });
 test('posição, taxas e slippage em inteiros conservadores', () => {
