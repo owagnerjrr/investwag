@@ -50,7 +50,8 @@ export default function QuantDashboard({ onExpired, globalPaused }) {
     [assets, setAssets] = useState([]),
     [supported, setSupported] = useState([]),
     [strategies, setStrategies] = useState([]),
-    [runs, setRuns] = useState([]);
+    [runs, setRuns] = useState([]),
+    [selectedRunId, setSelectedRunId] = useState("");
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
@@ -145,7 +146,7 @@ export default function QuantDashboard({ onExpired, globalPaused }) {
       (b.analyses[0]?.result.score ?? -Infinity) -
       (a.analyses[0]?.result.score ?? -Infinity),
   );
-  const selected = runs[0];
+  const selected = runs.find((r) => r.id === selectedRunId) || runs[0];
   return (
     <section className="quant-area" aria-busy={busy}>
       <div className="section-heading">
@@ -266,8 +267,8 @@ export default function QuantDashboard({ onExpired, globalPaused }) {
               </button>
               <p className="hint">
                 Frankfurter · fontes oficiais identificadas. Até 366 dias por
-                busca, uma busca por ativo a cada 15 minutos. Feriados não são
-                preenchidos.
+                busca, uma busca por ativo a cada 15 minutos. Sem interpolação;
+                a fonte pode agregar taxas em dias não úteis.
               </p>
             </section>
             <section>
@@ -480,8 +481,21 @@ export default function QuantDashboard({ onExpired, globalPaused }) {
           </section>
           {selected && (
             <section>
+              <label htmlFor="q-metrics">Simulação para métricas e curva</label>
+              <select
+                id="q-metrics"
+                value={selected.id}
+                onChange={(e) => setSelectedRunId(e.target.value)}
+              >
+                {runs.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.kind} · {assets.find((a) => a.id === r.assetId)?.symbol}{" "}
+                    · {new Date(r.createdAt).toLocaleString("pt-BR")}
+                  </option>
+                ))}
+              </select>
               <h3>
-                Última simulação ·{" "}
+                Simulação selecionada ·{" "}
                 {selected.kind === "BACKTEST" ? "Histórica" : "Paper trading"}
               </h3>
               <div className="grid">
@@ -505,6 +519,26 @@ export default function QuantDashboard({ onExpired, globalPaused }) {
             </section>
           )}
           <section>
+            <h3>Estratégias ativas · execução manual</h3>
+            {runs.filter((r) => r.kind === "PAPER" && r.status === "RUNNING")
+              .length ? (
+              runs
+                .filter((r) => r.kind === "PAPER" && r.status === "RUNNING")
+                .map((r) => (
+                  <p key={r.id}>
+                    {strategies.find((s) => s.id === r.strategyId)?.name ||
+                      r.config.strategyVersion}{" "}
+                    · SMA {r.config.strategy.fast}/{r.config.strategy.slow} ·{" "}
+                    {assets.find((a) => a.id === r.assetId)?.symbol}. Guard:
+                    exposição por ativo {r.config.risk.assetBps / 100}%, total{" "}
+                    {r.config.risk.totalBps / 100}%, concentração{" "}
+                    {r.config.risk.concentrationBps / 100}%, perda diária{" "}
+                    {r.config.risk.dailyLossBps / 100}%.
+                  </p>
+                ))
+            ) : (
+              <p>Nenhuma sessão paper ativa.</p>
+            )}
             <h3>Simulações e posições fictícias</h3>
             {runs.length === 0 ? (
               <p>Nenhuma simulação criada.</p>

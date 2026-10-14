@@ -37,13 +37,22 @@ test("baseline de banco legado preserva contas e movimentações", async () => {
     for (const statement of sql.split(";").filter((s) => s.trim()))
       await legacy.$executeRawUnsafe(statement);
     // Bring this disposable schema to the published v1 before testing v2.
-    const stability = await readFile(new URL('../prisma/migrations/202610130002_demo_stability/migration.sql', import.meta.url), 'utf8');
+    const stability = await readFile(
+      new URL(
+        "../prisma/migrations/202610130002_demo_stability/migration.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    );
     await legacy.$executeRaw`INSERT INTO "User" (id, email, "passwordHash") VALUES ('legacy-user', 'legacy@example.test', 'existing-hash')`;
     await legacy.$executeRaw`INSERT INTO "Portfolio" (id, "userId", "cashCents", "contributedCents", "updatedAt") VALUES ('legacy-wallet', 'legacy-user', 1000, 1000, CURRENT_TIMESTAMP)`;
     await legacy.$executeRaw`INSERT INTO "CashMovement" (id, "portfolioId", type, "amountCents") VALUES ('legacy-movement', 'legacy-wallet', 'DEPOSIT', 1000)`;
-    for (const statement of stability.split(';').filter(s => s.trim())) await legacy.$executeRawUnsafe(statement);
+    for (const statement of stability.split(";").filter((s) => s.trim()))
+      await legacy.$executeRawUnsafe(statement);
     await legacy.$executeRaw`INSERT INTO "Session" ("tokenHash", "userId", "expiresAt") VALUES ('existing-session-hash', 'legacy-user', CURRENT_TIMESTAMP + INTERVAL '1 hour')`;
-    const sessionBefore = await legacy.session.findUniqueOrThrow({where:{tokenHash:'existing-session-hash'}});
+    const sessionBefore = await legacy.session.findUniqueOrThrow({
+      where: { tokenHash: "existing-session-hash" },
+    });
     run(["migrate", "resolve", "--applied", "202610130001_initial"]);
     run(["migrate", "resolve", "--applied", "202610130002_demo_stability"]);
     run(["migrate", "deploy"]);
@@ -55,7 +64,12 @@ test("baseline de banco legado preserva contas e movimentações", async () => {
     assert.equal(p.paused, true);
     assert.equal(p.user.passwordHash, "existing-hash");
     assert.equal(p.movements[0].idempotencyKey, "legacy_legacy-movement");
-    assert.deepEqual(await legacy.session.findUniqueOrThrow({where:{tokenHash:'existing-session-hash'}}), sessionBefore);
+    assert.deepEqual(
+      await legacy.session.findUniqueOrThrow({
+        where: { tokenHash: "existing-session-hash" },
+      }),
+      sessionBefore,
+    );
     assert.match(
       String(
         run([

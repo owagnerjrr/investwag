@@ -29,6 +29,7 @@ const marketFetcher = async (url) => {
 };
 const server = createApp(db, {
   authLimit: 1000,
+  globalLimit: 2000,
   quantEnabled: true,
   marketFetcher,
 }).listen(Number(process.env.PORT || 4000), "0.0.0.0");

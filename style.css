@@ -568,6 +568,8 @@ footer strong {
 .quant-events {
   list-style: none;
   padding: 0;
+  max-height: 420px;
+  overflow: auto;
 }
 .quant-events li {
   padding: 12px 0;
