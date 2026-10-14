@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import crypto from "node:crypto";
+import { quantRouter } from "./quant/routes.js";
 
 export const MAX_CENTS = 100000000000n;
 export function parseMoney(value) {
@@ -299,6 +300,7 @@ export function createApp(db, options = {}) {
       res.json({ paused: p.paused });
     }),
   );
+  app.use("/quant", requireAuth, quantRouter(db, options));
   app.use((_req, res) =>
     res.status(404).json({ error: "Recurso não encontrado" }),
   );

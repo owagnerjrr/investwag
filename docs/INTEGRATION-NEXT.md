@@ -1,5 +1,7 @@
 # Integração do painel com a API
 
+Contrato v1 preservado. Novas rotas autenticadas `/quant` estão documentadas em [QUANT-2.md](QUANT-2.md) e exigem habilitação explícita; não transferem saldo desta carteira.
+
 A integração está ativa em src.jsx através de api-client.js. O frontend usa VITE_API_URL; não armazena senhas ou tokens no localStorage. O token vive somente em memória, expira no servidor em uma hora e é revogado por /auth/logout.
 
 Rotas:

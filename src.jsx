@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { demoApi, onConnectionStatus } from "./api-client.js";
 import "./style.css";
+import QuantDashboard from "./quant-dashboard.jsx";
 const fmt = (value) =>
   (Number(value) / 100).toLocaleString("pt-BR", {
     style: "currency",
@@ -371,6 +372,12 @@ function App() {
               </div>
             )}
           </section>
+          {import.meta.env.VITE_QUANT_ENABLED === "1" && (
+            <QuantDashboard
+              onExpired={() => setPortfolio(null)}
+              globalPaused={portfolio.paused}
+            />
+          )}
         </>
       )}
       {error && (

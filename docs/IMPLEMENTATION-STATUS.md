@@ -1,5 +1,7 @@
 # Estado de implementação — 13/10/2026
 
+Registro histórico da v1 publicada. Para a branch 2.0, consultar [QUANT-2.md](QUANT-2.md); scanner, backtest e paper fictício são novos módulos opcionais. O estado da produção não foi alterado.
+
 ## Entregue na versão demonstrativa
 
 - Painel React/Vite integrado à API, responsivo, com cadastro/login/logout e tratamento de carregamento, rede e expiração.

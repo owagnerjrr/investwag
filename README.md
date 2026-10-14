@@ -2,7 +2,9 @@
 
 Carteira demonstrativa React/Vite com API Express, PostgreSQL e Prisma. Cadastro, login, saldo por usuário, aportes/retiradas fictícios, histórico e controle de pausa funcionam em desktop e celular.
 
-**Somente simulação. Sem dinheiro real, corretoras, ordens de investimento ou promessa de lucro.** O motor de investimentos não foi iniciado. Reativar o sistema apenas salva a preferência na conta.
+**Somente simulação. Sem dinheiro real, corretoras ou promessa de lucro.** Esta branch adiciona scanner de taxas públicas, estratégia SMA, Guard, backtest e paper trading fictício. Os módulos 2.0 ficam desabilitados por padrão; a carteira demonstrativa e seus saldos/sessões são preservados. Reativar a carteira não executa operações automaticamente.
+
+Veja [WJ Quant 2.0](docs/QUANT-2.md) para habilitar o laboratório local, entender as fontes/limites e revisar o procedimento de publicação e rollback. Não há deploy de produção nesta fase.
 
 ## Executar localmente
 

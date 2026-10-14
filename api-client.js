@@ -127,3 +127,13 @@ export const demoApi = {
       body: JSON.stringify({ paused }),
     }),
 };
+
+export const quantApi = {
+  get: (path) => request("/quant" + path),
+  post: (path, body, key) =>
+    request("/quant" + path, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Idempotency-Key": key },
+    }),
+};

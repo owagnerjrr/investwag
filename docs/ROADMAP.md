@@ -1,5 +1,7 @@
 # Roadmap — WJ Quant
 
+Proposta histórica. A missão 2.0 autorizou scanner, motor fictício, Guard, backtesting e paper trading manual recuperável, descritos em [QUANT-2.md](QUANT-2.md). Nuvem contínua, infraestrutura paga e integração financeira real não foram autorizadas nem implementadas.
+
 O desenvolvimento será feito em blocos independentes, sempre preservando o que já funciona.
 
 ## Bloco 1 — Fundação
