@@ -139,9 +139,7 @@ test("laboratório: scanner, estratégia, backtest, paper, Guard e carteira pres
     body: document.documentElement.scrollWidth,
   }));
   expect(width.body).toBeLessThanOrEqual(width.viewport);
-  await page
-    .getByRole("heading", { name: "WJ Quant 2.0 · Laboratório" })
-    .scrollIntoViewIfNeeded();
+  await page.locator('.quant-area').evaluate(element=>element.scrollIntoView({block:'start'}));
   await page.screenshot({
     path: `test-results/quant-${info.project.name}.png`,
     fullPage: false,

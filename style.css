@@ -497,6 +497,7 @@ footer strong {
 .quant-area {
   margin-top: 32px;
 }
+.quant-area .feedback { position: static; }
 .quant-area section {
   margin: 20px 0;
 }
