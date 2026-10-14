@@ -1,5 +1,7 @@
 # Arquitetura do WJ Quant
 
+Na branch WJ Quant 2.0, a arquitetura efetivamente implementada está em [QUANT-2-ARCHITECTURE.md](QUANT-2-ARCHITECTURE.md) e [QUANT-2.md](QUANT-2.md). O texto abaixo registra a proposta original; integrações reais e disponibilidade contínua não fazem parte da fase demonstrativa atual.
+
 ## Objetivo
 
 Construir uma plataforma automatizada de investimentos com separação clara entre interface, dados, decisão, risco, execução e auditoria.
