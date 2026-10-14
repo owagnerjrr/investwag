@@ -12,6 +12,9 @@ model User {
   createdAt DateTime @default(now())
   portfolio Portfolio?
   sessions Session[]
+  quantAssets QuantAsset[]
+  quantStrategies QuantStrategy[]
+  quantRuns QuantRun[]
 }
 model Session {
   tokenHash String @id
@@ -48,4 +51,72 @@ model CashMovement {
 enum MovementType {
   DEPOSIT
   WITHDRAW
+}
+
+model QuantAsset {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol String
+  lastFetch DateTime?
+  lastError String?
+  bars QuantBar[]
+  analyses QuantAnalysis[]
+  createdAt DateTime @default(now())
+  @@unique([userId, symbol])
+}
+model QuantBar {
+  id String @id @default(cuid())
+  assetId String
+  asset QuantAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  date DateTime @db.Date
+  priceMicros BigInt
+  source String
+  fetchedAt DateTime @default(now())
+  @@unique([assetId, date])
+}
+model QuantAnalysis {
+  id String @id @default(cuid())
+  assetId String
+  asset QuantAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  result Json
+  createdAt DateTime @default(now())
+  @@index([assetId, createdAt])
+}
+model QuantStrategy {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name String
+  version String @default("sma-cross-v1")
+  config Json
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
+model QuantRun {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind String
+  status String
+  assetId String
+  strategyId String
+  config Json
+  state Json
+  datasetHash String
+  idempotencyKey String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events QuantEvent[]
+  @@unique([userId, idempotencyKey])
+  @@index([userId, createdAt])
+}
+model QuantEvent {
+  id String @id @default(cuid())
+  runId String
+  run QuantRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  key String
+  result Json
+  createdAt DateTime @default(now())
+  @@unique([runId, key])
 }
