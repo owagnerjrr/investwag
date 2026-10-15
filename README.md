@@ -1,3 +1,14 @@
+# WJ Quant 3.0 — piloto automático fictício
+
+Branch de desenvolvimento: pesquisa limitada de mercados, seleção SMA com treino/validação, Guard consolidado, livro virtual próprio, job diário assinado e painel simples. Flags fechadas por padrão; versões anteriores e dados publicados preservados. Não há merge/deploy ou automação 24/7 nesta entrega.
+
+- [Manual, API/variáveis, limites e publicação/rollback](docs/QUANT-3.md)
+- [Arquitetura e plano por blocos](docs/QUANT-3-ARCHITECTURE.md)
+- [Testes e evidências](docs/QUANT-3-TESTS.md)
+- [Infraestrutura e custos](docs/QUANT-3-INFRASTRUCTURE.md)
+
+O texto abaixo documenta a demonstração anterior, que continua disponível.
+
 # WJ Quant — demonstração
 
 Carteira demonstrativa React/Vite com API Express, PostgreSQL e Prisma. Cadastro, login, saldo por usuário, aportes/retiradas fictícios, histórico e controle de pausa funcionam em desktop e celular.

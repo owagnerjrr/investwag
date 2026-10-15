@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import crypto from "node:crypto";
 import { quantRouter } from "./quant/routes.js";
+import { pilotRouter, schedulerRoute } from "./pilot/routes.js";
 
 export const MAX_CENTS = 100000000000n;
 export function parseMoney(value) {
@@ -301,6 +302,8 @@ export function createApp(db, options = {}) {
     }),
   );
   app.use("/quant", requireAuth, quantRouter(db, options));
+  app.use("/pilot", requireAuth, pilotRouter(db, options));
+  app.post("/internal/pilot/tick", schedulerRoute(db, options));
   app.use((_req, res) =>
     res.status(404).json({ error: "Recurso não encontrado" }),
   );

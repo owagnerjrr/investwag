@@ -137,3 +137,12 @@ export const quantApi = {
       headers: { "Idempotency-Key": key },
     }),
 };
+export const pilotApi = {
+  get: () => request("/pilot"),
+  post: (body, key) =>
+    request("/pilot", {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Idempotency-Key": key },
+    }),
+};
