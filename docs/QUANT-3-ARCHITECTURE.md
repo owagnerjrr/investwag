@@ -20,7 +20,7 @@ Fontes: Frankfurter referência (somente pesquisa, nunca execução); CoinGecko 
 
 Job diário externo faz trabalho útil, sem keep-alive. GitHub Actions com runner padrão público, schedule diário fora da hora cheia, workflow_dispatch e flag de repositório desligada por padrão. Endpoint interno assinado HMAC, janela temporal, chave de ciclo persistida, bloqueio transacional e limite de contas por tick. Nunca executa por abrir o painel. Checkpoints/lastRun/nextRun no banco; heartbeat atrasado gera alerta visível. Não promete 24/7. Nenhum secret é criado/configurado externamente nesta fase.
 
-Quotas: catálogo pequeno, cache global persistente e cooldown diário, timeout/limite de payload, lote máximo 50 datas e 5 contas por tick, máximo 500 eventos por conta (sem apagar histórico; proteção ao atingir limite), curva limitada, circuit breaker de três falhas. Agendamento suspenso/exaurido não é recuperado por pings artificiais.
+Quotas: catálogo pequeno, cache global persistente e cache por dia UTC, timeout/limite de payload, lote máximo 10 datas e 5 contas por tick, máximo 500 eventos por conta (sem apagar histórico; proteção ao atingir limite), curva limitada, circuit breaker de três falhas. Agendamento suspenso/exaurido não é recuperado por pings artificiais.
 
 ## Segurança e recuperação
 

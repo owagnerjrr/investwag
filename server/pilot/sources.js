@@ -120,7 +120,7 @@ export async function loadSource(
     );
     result.reason = "REFERENCE_ONLY_NO_EXECUTION";
   } else if (asset.market === "CRYPTO") {
-    // Keyless terms explicitly exclude scheduled polling. No fallback to keyless/pro endpoints.
+    // Keyless docs warn against scheduled polling. Require Demo; never silently fall back to keyless/pro.
     if (!env.COINGECKO_DEMO_KEY)
       return { ...result, reason: "DEMO_KEY_REQUIRED_FOR_SCHEDULED_DATA" };
     const url = new URL(
