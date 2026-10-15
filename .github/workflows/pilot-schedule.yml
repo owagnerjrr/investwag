@@ -1,7 +1,7 @@
 name: Fictitious pilot daily job (disabled until configured)
 on:
   schedule:
-    - cron: '23 17 * * *'
+    - cron: "23 17 * * *"
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '22'
+          node-version: "22"
       - run: node scripts/pilot-schedule.mjs
         env:
           PILOT_API_URL: ${{ vars.PILOT_API_URL }}

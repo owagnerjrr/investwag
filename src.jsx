@@ -3,7 +3,9 @@ import { createRoot } from "react-dom/client";
 import { demoApi, onConnectionStatus } from "./api-client.js";
 import "./style.css";
 import QuantDashboard from "./quant-dashboard.jsx";
-import PilotDashboard from './pilot-dashboard.jsx';
+import PilotDashboard from "./pilot-dashboard.jsx";
+const pilotEnabled = import.meta.env.VITE_PILOT_ENABLED === "1";
+const LegacyView = pilotEnabled ? "details" : React.Fragment;
 const fmt = (value) =>
   (Number(value) / 100).toLocaleString("pt-BR", {
     style: "currency",
@@ -22,7 +24,7 @@ function App() {
     running = useRef(false);
   const [uncertain, setUncertain] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("");
-  const expirePilot=useCallback(()=>setPortfolio(null),[]);
+  const expirePilot = useCallback(() => setPortfolio(null), []);
   useEffect(() => onConnectionStatus(setConnectionStatus), []);
   async function load() {
     setPortfolio(await demoApi.portfolio());
@@ -109,7 +111,9 @@ function App() {
           {connectionStatus}
         </p>
       )}
-      <header>
+      <header
+        className={pilotEnabled && portfolio ? "pilot-header" : undefined}
+      >
         <a className="brand" href="/" aria-label="WJ Quant início">
           <span className="mark" aria-hidden="true">
             ◈
@@ -120,6 +124,11 @@ function App() {
           </span>
         </a>
         <span className="badge">Somente simulação</span>
+        {pilotEnabled && portfolio && (
+          <button className="text-button" disabled={busy} onClick={logout}>
+            Sair da conta
+          </button>
+        )}
       </header>
       <p className="warning">
         Valores fictícios. Nenhuma movimentação de dinheiro real ou conexão com
@@ -213,177 +222,192 @@ function App() {
         </div>
       ) : (
         <>
-          {import.meta.env.VITE_PILOT_ENABLED === '1' && <PilotDashboard onSessionExpired={expirePilot}/>}
-          <details className="legacy-area" open={import.meta.env.VITE_PILOT_ENABLED !== '1'}>
-          <summary>Carteira anterior e laboratório 2.0</summary>
-          <div className="dashboard-heading">
-            <div>
-              <p className="eyebrow">VISÃO GERAL</p>
-              <h1>Minha carteira</h1>
-            </div>
-            <div className="actions">
-              <button disabled={busy} className="alt" onClick={() => run(load)}>
-                Atualizar saldo
-              </button>
-              <button disabled={busy} className="text-button" onClick={logout}>
-                Sair
-              </button>
-            </div>
-          </div>
-          <section className="hero">
-            <div>
-              <p>Patrimônio simulado</p>
-              <h2>{fmt(cash)}</h2>
-              <p className="result">
-                Resultado simulado{" "}
-                <strong>{fmt(cash - contributed + withdrawn)}</strong>
-              </p>
-            </div>
-            <div className="state">
-              <span className="badge">
-                {portfolio.paused ? "Pausado" : "Reativado · sem execução"}
-              </span>
-              <p>O motor de investimentos não está habilitado.</p>
-            </div>
-          </section>
-          <div className="grid">
-            <article>
-              <span>Capital aportado</span>
-              <strong>{fmt(contributed)}</strong>
-            </article>
-            <article>
-              <span>Disponível</span>
-              <strong>{fmt(cash)}</strong>
-            </article>
-            <article>
-              <span>Investido</span>
-              <strong>{fmt(0)}</strong>
-            </article>
-            <article>
-              <span>Total retirado</span>
-              <strong>{fmt(withdrawn)}</strong>
-            </article>
-          </div>
-          <div className="workspace">
-            <section>
-              <h2>Movimentar saldo fictício</h2>
-              <p>Aporte mínimo de R$ 10. Retiradas até o saldo disponível.</p>
-              <label htmlFor="amount">Valor em reais</label>
-              <input
-                id="amount"
-                inputMode="decimal"
-                maxLength={16}
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                disabled={busy || uncertain}
-                aria-describedby="amount-hint"
-              />
-              <p id="amount-hint" className="hint">
-                Exemplo: 10,25. Sem separador de milhares.
-              </p>
+          {pilotEnabled && (
+            <PilotDashboard
+              onSessionExpired={expirePilot}
+              onGlobalChange={load}
+            />
+          )}
+          <LegacyView {...(pilotEnabled ? { className: "legacy-area" } : {})}>
+            {pilotEnabled && (
+              <summary>Carteira anterior e laboratório 2.0</summary>
+            )}
+            <div className="dashboard-heading">
+              <div>
+                <p className="eyebrow">VISÃO GERAL</p>
+                <h1>Minha carteira</h1>
+              </div>
               <div className="actions">
                 <button
-                  disabled={busy || uncertain}
-                  onClick={() => change("DEPOSIT")}
+                  disabled={busy}
+                  className="alt"
+                  onClick={() => run(load)}
                 >
-                  Simular aporte
+                  Atualizar saldo
                 </button>
                 <button
-                  disabled={busy || uncertain}
-                  className="alt"
-                  onClick={() => change("WITHDRAW")}
+                  disabled={busy}
+                  className="text-button"
+                  onClick={logout}
                 >
-                  Simular retirada
+                  Sair
                 </button>
               </div>
-              {uncertain && (
-                <div className="retry">
-                  <p>
-                    A resposta não foi confirmada. Repita a mesma solicitação
-                    com segurança para conferir o resultado.
-                  </p>
+            </div>
+            <section className="hero">
+              <div>
+                <p>Patrimônio simulado</p>
+                <h2>{fmt(cash)}</h2>
+                <p className="result">
+                  Resultado simulado{" "}
+                  <strong>{fmt(cash - contributed + withdrawn)}</strong>
+                </p>
+              </div>
+              <div className="state">
+                <span className="badge">
+                  {portfolio.paused ? "Pausado" : "Reativado · sem execução"}
+                </span>
+                <p>O motor de investimentos não está habilitado.</p>
+              </div>
+            </section>
+            <div className="grid">
+              <article>
+                <span>Capital aportado</span>
+                <strong>{fmt(contributed)}</strong>
+              </article>
+              <article>
+                <span>Disponível</span>
+                <strong>{fmt(cash)}</strong>
+              </article>
+              <article>
+                <span>Investido</span>
+                <strong>{fmt(0)}</strong>
+              </article>
+              <article>
+                <span>Total retirado</span>
+                <strong>{fmt(withdrawn)}</strong>
+              </article>
+            </div>
+            <div className="workspace">
+              <section>
+                <h2>Movimentar saldo fictício</h2>
+                <p>Aporte mínimo de R$ 10. Retiradas até o saldo disponível.</p>
+                <label htmlFor="amount">Valor em reais</label>
+                <input
+                  id="amount"
+                  inputMode="decimal"
+                  maxLength={16}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  disabled={busy || uncertain}
+                  aria-describedby="amount-hint"
+                />
+                <p id="amount-hint" className="hint">
+                  Exemplo: 10,25. Sem separador de milhares.
+                </p>
+                <div className="actions">
                   <button
-                    disabled={busy}
-                    onClick={() => change(pending.current.type)}
+                    disabled={busy || uncertain}
+                    onClick={() => change("DEPOSIT")}
                   >
-                    Confirmar operação pendente
+                    Simular aporte
                   </button>
+                  <button
+                    disabled={busy || uncertain}
+                    className="alt"
+                    onClick={() => change("WITHDRAW")}
+                  >
+                    Simular retirada
+                  </button>
+                </div>
+                {uncertain && (
+                  <div className="retry">
+                    <p>
+                      A resposta não foi confirmada. Repita a mesma solicitação
+                      com segurança para conferir o resultado.
+                    </p>
+                    <button
+                      disabled={busy}
+                      onClick={() => change(pending.current.type)}
+                    >
+                      Confirmar operação pendente
+                    </button>
+                  </div>
+                )}
+              </section>
+              <section>
+                <p className="eyebrow">CONTROLE DO SISTEMA</p>
+                <h2>
+                  {portfolio.paused ? "Sistema pausado" : "Sistema reativado"}
+                </h2>
+                <p>
+                  A pausa é salva na sua conta. Aportes e retiradas simulados
+                  continuam disponíveis. Reativar não inicia investimentos.
+                </p>
+                <button
+                  disabled={busy}
+                  className="alt"
+                  onClick={() =>
+                    run(async () => {
+                      await demoApi.pause(!portfolio.paused);
+                      await load();
+                      setNotice("Estado do sistema atualizado.");
+                    })
+                  }
+                >
+                  {portfolio.paused ? "Reativar sistema" : "Pausar sistema"}
+                </button>
+              </section>
+            </div>
+            <section className="history">
+              <div className="section-heading">
+                <h2>Histórico de movimentações</h2>
+                <span>Últimas 100</span>
+              </div>
+              {portfolio.movements.length ? (
+                <ul>
+                  {portfolio.movements.map((m) => (
+                    <li key={m.id}>
+                      <span
+                        className={
+                          m.type === "DEPOSIT"
+                            ? "movement-icon"
+                            : "movement-icon out"
+                        }
+                        aria-hidden="true"
+                      >
+                        {m.type === "DEPOSIT" ? "+" : "−"}
+                      </span>
+                      <div>
+                        <strong>
+                          {m.type === "DEPOSIT"
+                            ? "Aporte simulado"
+                            : "Retirada simulada"}
+                        </strong>
+                        <time dateTime={m.createdAt}>
+                          {new Date(m.createdAt).toLocaleString("pt-BR")}
+                        </time>
+                      </div>
+                      <strong className="movement-value">
+                        {m.type === "DEPOSIT" ? "+" : "−"} {fmt(m.amountCents)}
+                      </strong>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="empty">
+                  <strong>Sua história começa aqui</strong>
+                  <p>Simule um aporte para ver sua primeira movimentação.</p>
                 </div>
               )}
             </section>
-            <section>
-              <p className="eyebrow">CONTROLE DO SISTEMA</p>
-              <h2>
-                {portfolio.paused ? "Sistema pausado" : "Sistema reativado"}
-              </h2>
-              <p>
-                A pausa é salva na sua conta. Aportes e retiradas simulados
-                continuam disponíveis. Reativar não inicia investimentos.
-              </p>
-              <button
-                disabled={busy}
-                className="alt"
-                onClick={() =>
-                  run(async () => {
-                    await demoApi.pause(!portfolio.paused);
-                    await load();
-                    setNotice("Estado do sistema atualizado.");
-                  })
-                }
-              >
-                {portfolio.paused ? "Reativar sistema" : "Pausar sistema"}
-              </button>
-            </section>
-          </div>
-          <section className="history">
-            <div className="section-heading">
-              <h2>Histórico de movimentações</h2>
-              <span>Últimas 100</span>
-            </div>
-            {portfolio.movements.length ? (
-              <ul>
-                {portfolio.movements.map((m) => (
-                  <li key={m.id}>
-                    <span
-                      className={
-                        m.type === "DEPOSIT"
-                          ? "movement-icon"
-                          : "movement-icon out"
-                      }
-                      aria-hidden="true"
-                    >
-                      {m.type === "DEPOSIT" ? "+" : "−"}
-                    </span>
-                    <div>
-                      <strong>
-                        {m.type === "DEPOSIT"
-                          ? "Aporte simulado"
-                          : "Retirada simulada"}
-                      </strong>
-                      <time dateTime={m.createdAt}>
-                        {new Date(m.createdAt).toLocaleString("pt-BR")}
-                      </time>
-                    </div>
-                    <strong className="movement-value">
-                      {m.type === "DEPOSIT" ? "+" : "−"} {fmt(m.amountCents)}
-                    </strong>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="empty">
-                <strong>Sua história começa aqui</strong>
-                <p>Simule um aporte para ver sua primeira movimentação.</p>
-              </div>
+            {import.meta.env.VITE_QUANT_ENABLED === "1" && (
+              <QuantDashboard
+                onExpired={() => setPortfolio(null)}
+                globalPaused={portfolio.paused}
+              />
             )}
-          </section>
-          {import.meta.env.VITE_QUANT_ENABLED === "1" && (
-            <QuantDashboard
-              onExpired={() => setPortfolio(null)}
-              globalPaused={portfolio.paused}
-            />
-          )}
-          </details>
+          </LegacyView>
         </>
       )}
       {error && (
