@@ -24,6 +24,11 @@ const nextDaily = (now) => {
   n.setUTCHours(17, 23, 0, 0);
   return n;
 };
+const upcomingDaily = (now) => {
+  const n = new Date(now);
+  n.setUTCHours(17, 23, 0, 0);
+  return +n > +now ? n : nextDaily(now);
+};
 const locked = async (tx, userId) => {
   await tx.$queryRaw`SELECT id FROM "PilotAccount" WHERE "userId"=${userId} FOR UPDATE`;
   return tx.pilotAccount.findUnique({ where: { userId } });
@@ -38,6 +43,9 @@ const view = (a, events = [], now = new Date()) => {
     state = { alerts: ["INTEGRITY_FAILURE"] };
     integrityValid = false;
   }
+  const expected = a.state.expectedAt
+    ? new Date(a.state.expectedAt)
+    : a.nextRun;
   return {
     id: a.id,
     status: a.status,
@@ -46,9 +54,13 @@ const view = (a, events = [], now = new Date()) => {
     policy: a.policy,
     authorizedAt: a.authorizedAt,
     lastRun: a.lastRun,
-    nextRun: a.nextRun,
+    nextRun: a.status === "ACTIVE" ? expected : null,
     failures: a.failures,
-    scheduleOverdue: !!(a.nextRun && +now - +a.nextRun > 6 * 3600000),
+    scheduleOverdue: !!(
+      a.status === "ACTIVE" &&
+      expected &&
+      +now - +expected > 6 * 3600000
+    ),
     events,
   };
 };
@@ -133,6 +145,7 @@ export async function mutatePilot(db, userId, key, body, options = {}) {
         data.authorizedAt = now;
         data.status = "ACTIVE";
         state.startedOn = now.toISOString().slice(0, 10);
+        state.expectedAt = upcomingDaily(now).toISOString();
         data.state = state;
         data.nextRun = now;
         await tx.portfolio.update({
@@ -151,6 +164,8 @@ export async function mutatePilot(db, userId, key, body, options = {}) {
           );
         data.status = "ACTIVE";
         data.nextRun = now;
+        state.expectedAt = upcomingDaily(now).toISOString();
+        data.state = state;
         await tx.portfolio.update({
           where: { userId },
           data: { paused: false },
@@ -273,6 +288,7 @@ export async function runAccount(db, userId, cycle, assets, options = {}) {
           orders: 0,
         };
       }
+      state.expectedAt = nextDaily(now).toISOString();
       await tx.pilotAccount.update({
         where: { id: a.id },
         data: {
