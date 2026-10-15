@@ -15,6 +15,7 @@ model User {
   quantAssets QuantAsset[]
   quantStrategies QuantStrategy[]
   quantRuns QuantRun[]
+  pilot PilotAccount?
 }
 model Session {
   tokenHash String @id
@@ -123,4 +124,49 @@ model QuantEvent {
   result Json
   createdAt DateTime @default(now())
   @@unique([runId, key])
+}
+
+model PilotAccount {
+  id String @id @default(cuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status String @default("PAUSED")
+  state Json
+  policy Json
+  authorizedAt DateTime?
+  lastRun DateTime?
+  nextRun DateTime?
+  failures Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events PilotEvent[]
+  @@index([status, nextRun])
+}
+model PilotEvent {
+  id String @id @default(cuid())
+  accountId String
+  account PilotAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  key String
+  kind String
+  fingerprint String
+  result Json
+  createdAt DateTime @default(now())
+  @@unique([accountId, key])
+  @@index([accountId, createdAt])
+}
+model PilotMarket {
+  symbol String @id
+  market String
+  snapshot Json
+  lastAttempt DateTime?
+  failures Int @default(0)
+  error String?
+}
+model PilotClock {
+  id String @id
+  leaseToken String?
+  leaseUntil DateTime?
+  lastTick DateTime?
+  lastSuccess DateTime?
+  lastError String?
 }
