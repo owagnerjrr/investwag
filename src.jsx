@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { demoApi, onConnectionStatus } from "./api-client.js";
 import "./style.css";
 import QuantDashboard from "./quant-dashboard.jsx";
+import PilotDashboard from './pilot-dashboard.jsx';
 const fmt = (value) =>
   (Number(value) / 100).toLocaleString("pt-BR", {
     style: "currency",
@@ -21,6 +22,7 @@ function App() {
     running = useRef(false);
   const [uncertain, setUncertain] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState("");
+  const expirePilot=useCallback(()=>setPortfolio(null),[]);
   useEffect(() => onConnectionStatus(setConnectionStatus), []);
   async function load() {
     setPortfolio(await demoApi.portfolio());
@@ -211,6 +213,9 @@ function App() {
         </div>
       ) : (
         <>
+          {import.meta.env.VITE_PILOT_ENABLED === '1' && <PilotDashboard onSessionExpired={expirePilot}/>}
+          <details className="legacy-area" open={import.meta.env.VITE_PILOT_ENABLED !== '1'}>
+          <summary>Carteira anterior e laboratório 2.0</summary>
           <div className="dashboard-heading">
             <div>
               <p className="eyebrow">VISÃO GERAL</p>
@@ -378,6 +383,7 @@ function App() {
               globalPaused={portfolio.paused}
             />
           )}
+          </details>
         </>
       )}
       {error && (
