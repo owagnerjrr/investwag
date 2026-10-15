@@ -220,6 +220,7 @@ export function selectStrategy(history, policy = DEFAULT_POLICY) {
     trainEnd: train.at(-1).date,
     validationStart: validation[0].date,
     through: history.at(-1).date,
+    policyHash: datasetHash(policy),
     candidates: 2,
     score: winner.train.netBps - winner.train.drawdownBps,
   };
@@ -393,8 +394,11 @@ export function advance(
       }
       let selection = position?.selection || s.selections[asset.symbol];
       if (
-        !selection ||
-        +new Date(day) - +new Date(selection.through) > 30 * 86400000
+        !position &&
+        (!selection ||
+          +new Date(day) - +new Date(selection.through) > 30 * 86400000 ||
+          (selection.policyHash &&
+            selection.policyHash !== datasetHash(policy)))
       ) {
         selection = selectStrategy(history, policy);
         if (selection.through) s.selections[asset.symbol] = selection;

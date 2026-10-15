@@ -214,3 +214,42 @@ test("abnormal discontinuity and corrupt ledger fail closed; funding does not fa
   );
   assert.equal(summary(movement(s, "DEPOSIT", "10000"), now).dailyCents, "0");
 });
+test("open position retains its selected strategy after research window expires", () => {
+  const series = bars([
+    ...Array(30).fill(100),
+    100,
+    99,
+    98,
+    99,
+    100,
+    101,
+    99,
+    98,
+    99,
+    100,
+    101,
+  ]);
+  const s = movement(emptyState(), "DEPOSIT", "100000");
+  s.startedOn = day(34);
+  s.cashCents = "80000";
+  s.positions["TEST-BRL"] = {
+    quantity: "2000000",
+    costCents: "20000",
+    priceMicros: "100000000",
+    sourceDate: day(34),
+    market: "CRYPTO",
+    selection: {
+      eligible: true,
+      strategy: { fast: 2, slow: 3 },
+      through: day(0),
+      reason: "SYNTHETIC FROZEN STRATEGY",
+    },
+  };
+  const result = advance(reconcile(s), [asset(series)], DEFAULT_POLICY, {
+    now: new Date(day(39) + "T18:00:00Z"),
+  });
+  assert.ok(
+    result.events.some((e) => e.order?.side === "SELL"),
+    "must use the original exit strategy, not a newly optimized candidate",
+  );
+});
