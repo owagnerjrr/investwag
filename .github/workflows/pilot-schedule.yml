@@ -1,0 +1,28 @@
+name: Fictitious pilot daily job (disabled until configured)
+on:
+  schedule:
+    - cron: '23 17 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: fictitious-pilot-daily
+  cancel-in-progress: false
+jobs:
+  daily:
+    if: vars.PILOT_SCHEDULE_ENABLED == 'true' && github.event.repository.visibility == 'public' && github.repository == 'owagnerjrr/investwag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: node scripts/pilot-schedule.mjs
+        env:
+          PILOT_API_URL: ${{ vars.PILOT_API_URL }}
+          PILOT_SCHEDULE_SECRET: ${{ secrets.PILOT_SCHEDULE_SECRET }}
+      # GitHub failure notifications follow the owner's existing Actions notification settings.
+      # No artifacts/caches/email integration, deployment, plan changes, or keep-alive.
