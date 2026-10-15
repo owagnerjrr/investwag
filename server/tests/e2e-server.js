@@ -1,6 +1,7 @@
 // Test-only server: keep auth rate-limit coverage in integration.test.js.
 import { PrismaClient } from "@prisma/client";
 import { createApp } from "../app.js";
+import { pilotFixture } from "./pilot-fixtures.js";
 if (
   !process.env.DATABASE_URL ||
   !new URL(process.env.DATABASE_URL).pathname.endsWith("_test")
@@ -32,6 +33,16 @@ const server = createApp(db, {
   globalLimit: 2000,
   quantEnabled: true,
   marketFetcher,
+  pilotEnabled: true,
+  schedulerSecret: "e2e-only-scheduler-secret-".repeat(3),
+  provider: pilotFixture,
+  catalog: [
+    {
+      symbol: "PILOT-E2E",
+      market: "CRYPTO",
+      source: "SYNTHETIC PILOT FIXTURE",
+    },
+  ],
 }).listen(Number(process.env.PORT || 4000), "0.0.0.0");
 process.once("SIGTERM", () =>
   server.close(async () => {

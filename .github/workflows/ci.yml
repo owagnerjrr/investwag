@@ -55,4 +55,10 @@ jobs:
         working-directory: server
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - run: npm run build
+        env:
+          VITE_PILOT_ENABLED: "1"
+      - run: npx playwright test e2e/pilot.spec.js
+        env:
+          E2E_PILOT: "1"
       # Validation only. No deployment, paid resource or production release.

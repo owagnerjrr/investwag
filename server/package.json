@@ -6,8 +6,8 @@
     "dev": "node --env-file=.env server.js",
     "start": "node server.js",
     "start:render": "prisma migrate deploy && node server.js",
-    "test": "node --test tests/money.test.js tests/health.test.js tests/db-connection.test.js tests/quant-indicators.test.js tests/quant-strategy.test.js tests/quant-guard.test.js tests/quant-backtest.test.js",
-    "test:integration": "node --test tests/integration.test.js tests/migration-upgrade.test.js tests/quant-integration.test.js",
+    "test": "node --test tests/money.test.js tests/health.test.js tests/db-connection.test.js tests/quant-indicators.test.js tests/quant-strategy.test.js tests/quant-guard.test.js tests/quant-backtest.test.js tests/pilot-engine.test.js tests/pilot-sources.test.js tests/pilot-schedule.test.js",
+    "test:integration": "node --test tests/integration.test.js tests/migration-upgrade.test.js tests/quant-integration.test.js tests/pilot-integration.test.js tests/pilot-upgrade.test.js",
     "build": "prisma validate && prisma generate && node --check app.js && node --check server.js",
     "db:migrate": "prisma migrate deploy",
     "db:status": "prisma migrate status"
